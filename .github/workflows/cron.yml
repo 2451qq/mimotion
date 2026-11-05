@@ -1,7 +1,7 @@
 name: Random Cron
 on:
   workflow_run:
-    workflows: ["brush step"] # 注意：这里必须是原 workflow 的 name（不是文件名）
+    workflows: ["brush step"]
     types:
       - completed
   workflow_dispatch:
@@ -16,37 +16,21 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          token: ${{ secrets.PAT }}
-          persist-credentials: false  # 切断默认凭据，防止干扰
-
+          token: ${{ secrets.PAT }} #此处PAT需要申请，教程详见：https://www.jianshu.com/p/bb82b3ad1d11,需要repo和workflow权限
       - name: random cron
         run: |
-          # 注意：这里我改成了 .github/workflows/cron.yml，你需要根据你实际的文件名修改
-          TARGET_FILE=".github/workflows/cron.yml"
-          
           # 提取当前cron分钟数
-          current_minute=$(grep -oP "(?<=- cron: ')\d+" $TARGET_FILE)
+          current_minute=$(grep -oP "(?<=- cron: ')\d+" .github/workflows/brush_step.yml)
           
           # 生成新分钟数（范围0-59），直到与当前不同
           new_minute=$((RANDOM % 60))
           while [ "$new_minute" -eq "$current_minute" ]; do
             new_minute=$((RANDOM % 60))
           done
-          
-          # 替换cron分钟数
-          sed -i -E "s/(- cron: ')[0-9]+( [^[:space:]]+ \* \* \*')/\1$new_minute\2/g" $TARGET_FILE
-          
-          # 配置 Git
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          # 提交并推送
-          git add $TARGET_FILE
-          
-          if git diff-index --quiet HEAD; then
-            echo "No changes to commit"
-          else
-            git commit -m "random cron update to $new_minute"
-            # 显式使用 PAT 推送，绕过 origin
-            git push https://${{ secrets.PAT }}@github.com/2451qq/mimotion.git HEAD:master
-          fi
+              # 替换cron分钟数
+          sed -i -E "s/(- cron: ')[0-9]+( [^[:space:]]+ \* \* \*')/\1$new_minute\2/g" .github/workflows/brush_step.yml
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add .
+          git commit -m "random cron"
+          git push origin master
