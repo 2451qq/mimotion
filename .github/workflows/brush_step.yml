@@ -6,7 +6,8 @@ on:
   #pull_request:
   #  branches: [ main ]
   schedule:
-    - cron: '36 0,4,7,8,10,12,14 * * *'
+    #控制运行时间设置
+    #- cron: '36 0,4,7,8,10,12,14 * * *'
 
   watch:
     types: started
